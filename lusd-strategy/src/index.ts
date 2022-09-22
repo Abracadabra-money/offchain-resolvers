@@ -24,9 +24,13 @@ export function checker(args: Args_checker): CheckerResult {
   const rewardTokens = userArgs.rewardTokens;
 
   const zeroAddress = "0x0000000000000000000000000000000000000000";
+  const stabilityPool = "0x66017D22b0f8556afDd19FC67041899Eb65a21bb";
   const BIPS = 10_000;
 
-  var swapData = new Array<string>(rewardTokens.length);
+  let swapData = new Array<string>(rewardTokens.length);
+  for (let i = 0; i < rewardTokens.length; i++) {
+    swapData[i] = "";
+  }
 
   let lastExecuted = BigInt.fromString(
     Ethereum_Module.callContractView({
@@ -66,6 +70,18 @@ export function checker(args: Args_checker): CheckerResult {
       }).unwrap();
 
       if (!rewardTokenBalance) throw Error(`ETH getBalance failed`);
+
+      let toHarvestAmount = Ethereum_Module.callContractView({
+        address: stabilityPool,
+        args: [strategy],
+        connection: args.connection,
+        method:
+          "function getDepositorETHGain(address) external view returns(uint256)",
+      }).unwrap();
+
+      if (!toHarvestAmount) throw Error(`getDepositorETHGain failed`);
+
+      rewardTokenBalance.add(BigInt.fromString(toHarvestAmount));
     } else {
       let response = Ethereum_Module.callContractView({
         address: rewardToken,
@@ -76,36 +92,53 @@ export function checker(args: Args_checker): CheckerResult {
 
       if (!response) throw Error(`failed to obtain ${rewardToken} balance`);
       rewardTokenBalance = BigInt.fromString(response);
+
+      let toHarvestAmount = Ethereum_Module.callContractView({
+        address: stabilityPool,
+        args: [strategy],
+        connection: args.connection,
+        method:
+          "function getDepositorLQTYGain(address) external view returns(uint256)",
+      }).unwrap();
+
+      if (!toHarvestAmount) throw Error(`getDepositorLQTYGain failed`);
+
+      rewardTokenBalance.add(BigInt.fromString(toHarvestAmount));
     }
 
-    let quoteApi = `${zeroExApiBaseUrl}/swap/v1/quote?buyToken=${strategyToken}&sellToken=${rewardToken}&sellAmount=${rewardTokenBalance.toString()}`;
-    logInfo(quoteApi);
-    let quoteApiRes = Http_Module.get({
-      request: null,
-      url: quoteApi,
-    }).unwrap();
+    if (rewardTokenBalance.gt(0)) {
+      let quoteApi = `${zeroExApiBaseUrl}/swap/v1/quote?buyToken=${strategyToken}&sellToken=${rewardToken}&sellAmount=${rewardTokenBalance.toString()}`;
+      logInfo(quoteApi);
+      let quoteApiRes = Http_Module.get({
+        request: null,
+        url: quoteApi,
+      }).unwrap();
 
-    if (!quoteApiRes) throw Error("Get quote api failed");
-    let quoteResObj = <JSON.Obj>JSON.parse(quoteApiRes.body);
+      if (!quoteApiRes) throw Error("Get quote api failed");
+      let quoteResObj = <JSON.Obj>JSON.parse(quoteApiRes.body);
 
-    let value = quoteResObj.getValue("buyAmount");
-    if (!value) throw Error("No buyAmount");
-    let toTokenAmount = BigInt.fromString(value.toString());
+      let value = quoteResObj.getValue("buyAmount");
+      if (!value) throw Error("No buyAmount");
+      let toTokenAmount = BigInt.fromString(value.toString());
 
-    value = quoteResObj.getValue("data");
-    if (!value) throw Error("No data");
-    let data = value.toString();
+      value = quoteResObj.getValue("data");
+      if (!value) throw Error("No data");
+      let data = value.toString();
 
-    const minAmountOut = toTokenAmount.sub(
-      toTokenAmount.mul(rewardSwappingSlippageInBips).div(BIPS)
-    );
+      const minAmountOut = toTokenAmount.sub(
+        toTokenAmount.mul(rewardSwappingSlippageInBips).div(BIPS)
+      );
 
-    swapData[i] = Ethereum_Module.encodeFunction({
-      method:
-        "function swapRewards(uint256,address,bytes) external returns (uint256 amountOut)",
-      args: [minAmountOut.toString(), rewardToken, data],
-    }).unwrap();
+      swapData[i] = Ethereum_Module.encodeFunction({
+        method:
+          "function swapRewards(uint256,address,bytes) external returns (uint256 amountOut)",
+        args: [minAmountOut.toString(), rewardToken, data],
+      }).unwrap();
+    }
   }
+
+  swapData = swapData.filter((f) => f != "");
+  logInfo(swapData.length.toString());
 
   let execData = Ethereum_Module.encodeFunction({
     method: "function run(address,uint256,uint256,bytes[]) external",
@@ -113,7 +146,7 @@ export function checker(args: Args_checker): CheckerResult {
       strategy,
       maxBentoBoxAmountIncreaseInBips.toString(),
       maxBentoBoxChangeAmountInBips.toString(),
-      '["' + swapData.join('", "') + '"]',
+      swapData.length > 0 ? '["' + swapData.join('", "') + '"]' : "[]"
     ],
   }).unwrap();
 
