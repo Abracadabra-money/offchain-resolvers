@@ -26,19 +26,18 @@ export function checker(args: Args_checker): CheckerResult {
   const zeroAddress = "0x0000000000000000000000000000000000000000";
   const BIPS = 10_000;
 
-  let canExec = false;
-  let swapData = [];
+  var swapData = new Array<string>(rewardTokens.length);
 
   let lastExecuted = BigInt.fromString(
     Ethereum_Module.callContractView({
       address: execAddress,
-      method: "function lastExecuted() external view returns(uint256)",
+      method: "function lastExecution() external view returns(uint256)",
       args: null,
       connection: args.connection,
     }).unwrap()
   );
 
-  if (timeNowSec.gte(lastExecuted.add(intervalInSeconds))) {
+  if (timeNowSec.lt(lastExecuted.add(intervalInSeconds))) {
     return { canExec: false, execData: "" };
   }
 
@@ -46,18 +45,20 @@ export function checker(args: Args_checker): CheckerResult {
     address: strategy,
     args: [],
     connection: args.connection,
-    method: "function strategyToken() external",
+    method: "function strategyToken() external view returns(address)",
   }).unwrap();
 
   if (!strategyToken) throw Error("strategyToken call failed");
 
   for (let i = 0; i < rewardTokens.length; i++) {
     let rewardToken = rewardTokens[i];
+    let sellToken = rewardToken;
     let rewardTokenBalance: BigInt;
 
     // Native ETH reward
-    if (rewardToken === "ETH" || rewardToken == zeroAddress) {
+    if (rewardToken == "ETH" || rewardToken == zeroAddress) {
       rewardToken = zeroAddress;
+      sellToken = "ETH";
       rewardTokenBalance = Ethereum_Module.getBalance({
         connection: args.connection,
         address: strategy,
@@ -70,30 +71,40 @@ export function checker(args: Args_checker): CheckerResult {
         address: rewardToken,
         args: [strategy],
         connection: args.connection,
-        method: "function balanceOf(address) external",
+        method: "function balanceOf(address) external view returns(uint256)",
       }).unwrap();
 
       if (!response) throw Error(`failed to obtain ${rewardToken} balance`);
       rewardTokenBalance = BigInt.fromString(response);
     }
 
-    const { toTokenAmount, data } = getQuote(
-      zeroExApiBaseUrl,
-      rewardToken,
-      strategyToken,
-      rewardTokenBalance
-    );
+    let quoteApi = `${zeroExApiBaseUrl}/swap/v1/quote?buyToken=${strategyToken}&sellToken=${rewardToken}&sellAmount=${rewardTokenBalance.toString()}`;
+    logInfo(quoteApi);
+    let quoteApiRes = Http_Module.get({
+      request: null,
+      url: quoteApi,
+    }).unwrap();
+
+    if (!quoteApiRes) throw Error("Get quote api failed");
+    let quoteResObj = <JSON.Obj>JSON.parse(quoteApiRes.body);
+
+    let value = quoteResObj.getValue("buyAmount");
+    if (!value) throw Error("No buyAmount");
+    let toTokenAmount = BigInt.fromString(value.toString());
+
+    value = quoteResObj.getValue("data");
+    if (!value) throw Error("No data");
+    let data = value.toString();
 
     const minAmountOut = toTokenAmount.sub(
       toTokenAmount.mul(rewardSwappingSlippageInBips).div(BIPS)
     );
 
-    swapData.push(
-      Ethereum_Module.encodeFunction({
-        method: "function swapRewards(uint256,address,bytes) external",
-        args: [minAmountOut.toString(), rewardToken, data],
-      }).unwrap()
-    );
+    swapData[i] = Ethereum_Module.encodeFunction({
+      method:
+        "function swapRewards(uint256,address,bytes) external returns (uint256 amountOut)",
+      args: [minAmountOut.toString(), rewardToken, data],
+    }).unwrap();
   }
 
   let execData = Ethereum_Module.encodeFunction({
@@ -106,36 +117,7 @@ export function checker(args: Args_checker): CheckerResult {
     ],
   }).unwrap();
 
-  return { canExec, execData };
-}
-
-function getQuote(
-  zeroExApiBaseUrl: string,
-  fromTokenAddress: string,
-  toTokenAddress: string,
-  fromTokenAmount: BigInt
-): {
-  toTokenAmount: BigInt;
-  data: string;
-} {
-  let quoteApi = `${zeroExApiBaseUrl}/swap/v1/price?buyToken=${toTokenAddress}&sellToken=${fromTokenAddress}&sellAmount=${fromTokenAmount.toString()}`;
-  let quoteApiRes = Http_Module.get({
-    request: null,
-    url: quoteApi,
-  }).unwrap();
-
-  if (!quoteApiRes) throw Error("Get quote api failed");
-  let quoteResObj = <JSON.Obj>JSON.parse(quoteApiRes.body);
-
-  let value = quoteResObj.getValue("buyAmount");
-  if (!value) throw Error("No buyAmount");
-  let toTokenAmount = BigInt.fromString(value.toString());
-
-  value = quoteResObj.getValue("data");
-  if (!value) throw Error("No data");
-  let data = value.toString();
-
-  return { toTokenAmount, data };
+  return { canExec: true, execData };
 }
 
 function logInfo(msg: string): void {

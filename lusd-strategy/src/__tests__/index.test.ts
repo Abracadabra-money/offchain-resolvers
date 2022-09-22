@@ -2,6 +2,7 @@ import { encode } from "@msgpack/msgpack";
 import "dotenv/config";
 import { ethers } from "ethers";
 import path from "path";
+import { Template_CheckerResult } from "./types/wrap";
 import client from "./utils/client";
 
 jest.setTimeout(600000);
@@ -47,5 +48,13 @@ describe("lusd strategy resolver test", () => {
         gelatoArgsBuffer,
       },
     });
+
+    const error = job.error;
+    const data = <Template_CheckerResult>job.data;
+
+    expect(error).toBeFalsy();
+
+    console.log("canExec", data.canExec);
+    console.log("execData", data.execData);
   });
 });
