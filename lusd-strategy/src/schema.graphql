@@ -2,7 +2,6 @@
 #import * into Graph from "wrap://ens/graph-node.polywrap.eth"
 #import * into Logger from "wrap://ens/js-logger.polywrap.eth"
 #import * into Http from "wrap://ens/http.polywrap.eth"
-#import * into Time from "wrap://ens/datetime.polywrap.eth"
 
 type Module {
   checker(
@@ -19,14 +18,16 @@ type CheckerResult {
 
 type GelatoArgs {
   gasPrice: BigInt!
+  timeStamp: BigInt!
 }
 
 type UserArgs {
+  execAddress: String!
   zeroExApiBaseUrl: String!
-  interval: BigInt!
+  intervalInSeconds: BigInt!
   strategy: String!
-  rewardSwappingSlippagePercent: BigInt!
-  maxBentoBoxAmountIncreasePercent: BigInt!
-  maxBentoBoxChangeAmountPercent: BigInt!
+  rewardSwappingSlippageInBips: BigInt!
+  maxBentoBoxAmountIncreaseInBips: BigInt!
+  maxBentoBoxChangeAmountInBips: BigInt!
   rewardTokens: [String!]!
 }

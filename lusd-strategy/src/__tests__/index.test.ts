@@ -6,12 +6,7 @@ import client from "./utils/client";
 
 jest.setTimeout(600000);
 
-const POLYGON_CHAINID = "137";
-const POLYGON_WETH = "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619";
-const POLYGON_USDC = "0x2791bca1f2de4661ed88a30c99a7a9449aa84174";
-const POLYGON_TARGET = "0xCDf41a135C65d0013393B3793F92b4FAF31032d0";
-
-describe("Gelato 1inch resolver test", () => {
+describe("lusd strategy resolver test", () => {
   let wrapperUri: string;
   let userArgsBuffer: Uint8Array;
   let gelatoArgsBuffer: Uint8Array;
@@ -23,14 +18,20 @@ describe("Gelato 1inch resolver test", () => {
 
     const gelatoArgs = {
       gasPrice: ethers.utils.parseUnits("100", "gwei").toString(),
+      timeStamp: "1663861312"
     };
     const userArgs = {
-      chainId: POLYGON_CHAINID,
-      fromTokenAmount: ethers.utils.parseEther("0.00001").toString(),
-      minToTokenAmount: ethers.utils.parseUnits("0.0001", "mwei").toString(),
-      fromTokenAddress: POLYGON_WETH,
-      toTokenAddress: POLYGON_USDC,
-      targetAddress: POLYGON_TARGET,
+      execAddress: "0x762d06bB0E45f5ACaEEA716336142a39376E596E",
+      zeroExApiBaseUrl: "https://api.0x.org",
+      intervalInSeconds: "86400",
+      strategy: "0x1EdC13C5FC1C6e0731AE4fC1Bc4Cd6570bBc755C", // LUSD Strat
+      rewardSwappingSlippageInBips: "200",
+      maxBentoBoxAmountIncreaseInBips: "1",
+      maxBentoBoxChangeAmountInBips: "5",
+      rewardTokens: [
+        "ETH",
+        "0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D"
+      ]
     };
 
     userArgsBuffer = encode(userArgs);
@@ -46,7 +47,5 @@ describe("Gelato 1inch resolver test", () => {
         gelatoArgsBuffer,
       },
     });
-
-    console.log(job);
   });
 });
