@@ -29,10 +29,7 @@ describe("lusd strategy resolver test", () => {
       rewardSwappingSlippageInBips: "200",
       maxBentoBoxAmountIncreaseInBips: "1",
       maxBentoBoxChangeAmountInBips: "5",
-      rewardTokens: [
-        "ETH",
-        "0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D"
-      ]
+      rewardTokensCommaSeparated: "ETH,0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D"
     };
 
     userArgsBuffer = encode(userArgs);

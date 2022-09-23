@@ -29,5 +29,5 @@ type UserArgs {
   rewardSwappingSlippageInBips: BigInt!
   maxBentoBoxAmountIncreaseInBips: BigInt!
   maxBentoBoxChangeAmountInBips: BigInt!
-  rewardTokens: [String!]!
+  rewardTokensCommaSeparated: String!
 }

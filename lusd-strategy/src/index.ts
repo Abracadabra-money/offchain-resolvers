@@ -21,7 +21,7 @@ export function checker(args: Args_checker): CheckerResult {
   const maxBentoBoxAmountIncreaseInBips =
     userArgs.maxBentoBoxAmountIncreaseInBips;
   const maxBentoBoxChangeAmountInBips = userArgs.maxBentoBoxChangeAmountInBips;
-  const rewardTokens = userArgs.rewardTokens;
+  const rewardTokens = userArgs.rewardTokensCommaSeparated.split(",");
 
   const zeroAddress = "0x0000000000000000000000000000000000000000";
   const stabilityPool = "0x66017D22b0f8556afDd19FC67041899Eb65a21bb";
@@ -29,6 +29,7 @@ export function checker(args: Args_checker): CheckerResult {
 
   let swapData = new Array<string>(rewardTokens.length);
   for (let i = 0; i < rewardTokens.length; i++) {
+    rewardTokens[i] = rewardTokens[i].trim();
     swapData[i] = "";
   }
 
