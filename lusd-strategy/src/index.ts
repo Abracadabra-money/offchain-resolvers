@@ -108,8 +108,8 @@ export function checker(args: Args_checker): CheckerResult {
     }
 
     if (rewardTokenBalance.gt(0)) {
-      let quoteApi = `${zeroExApiBaseUrl}/swap/v1/quote?buyToken=${strategyToken}&sellToken=${rewardToken}&sellAmount=${rewardTokenBalance.toString()}`;
-      logInfo(quoteApi);
+      let quoteApi = `${zeroExApiBaseUrl}/swap/v1/quote?buyToken=${strategyToken}&sellToken=${sellToken}&sellAmount=${rewardTokenBalance.toString()}`;
+      //logInfo(quoteApi);
       let quoteApiRes = Http_Module.get({
         request: null,
         url: quoteApi,
@@ -139,15 +139,13 @@ export function checker(args: Args_checker): CheckerResult {
   }
 
   swapData = swapData.filter((f) => f != "");
-  logInfo(swapData.length.toString());
-
   let execData = Ethereum_Module.encodeFunction({
     method: "function run(address,uint256,uint256,bytes[]) external",
     args: [
       strategy,
       maxBentoBoxAmountIncreaseInBips.toString(),
       maxBentoBoxChangeAmountInBips.toString(),
-      swapData.length > 0 ? '["' + swapData.join('", "') + '"]' : "[]"
+      swapData.length > 0 ? '["' + swapData.join('", "') + '"]' : "[]",
     ],
   }).unwrap();
 

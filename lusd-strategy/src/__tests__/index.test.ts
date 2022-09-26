@@ -19,7 +19,7 @@ describe("lusd strategy resolver test", () => {
 
     const gelatoArgs = {
       gasPrice: ethers.utils.parseUnits("100", "gwei").toString(),
-      timeStamp: "1663861312"
+      timeStamp: "1664204293"
     };
     const userArgs = {
       execAddress: "0x762d06bB0E45f5ACaEEA716336142a39376E596E",
@@ -28,7 +28,7 @@ describe("lusd strategy resolver test", () => {
       strategy: "0x1EdC13C5FC1C6e0731AE4fC1Bc4Cd6570bBc755C", // LUSD Strat
       rewardSwappingSlippageInBips: "200",
       maxBentoBoxAmountIncreaseInBips: "1",
-      maxBentoBoxChangeAmountInBips: "5",
+      maxBentoBoxChangeAmountInBips: "1000",
       rewardTokensCommaSeparated: "ETH,0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D"
     };
 
@@ -54,4 +54,5 @@ describe("lusd strategy resolver test", () => {
     console.log("canExec", data.canExec);
     console.log("execData", data.execData);
   });
+
 });
