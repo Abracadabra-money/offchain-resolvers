@@ -19,7 +19,7 @@ describe("lusd strategy resolver test", () => {
 
     const gelatoArgs = {
       gasPrice: ethers.utils.parseUnits("100", "gwei").toString(),
-      timeStamp: "1664204293"
+      timeStamp: "1666929002"
     };
     const userArgs = {
       execAddress: "0x762d06bB0E45f5ACaEEA716336142a39376E596E",

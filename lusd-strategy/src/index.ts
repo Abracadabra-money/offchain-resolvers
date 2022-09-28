@@ -69,8 +69,10 @@ export function checker(args: Args_checker): CheckerResult {
         address: strategy,
         blockTag: null,
       }).unwrap();
-
+      
       if (!rewardTokenBalance) throw Error(`ETH getBalance failed`);
+
+      logInfo(`current ETH balance: ${rewardTokenBalance}`);
 
       let toHarvestAmount = Ethereum_Module.callContractView({
         address: stabilityPool,
@@ -82,7 +84,9 @@ export function checker(args: Args_checker): CheckerResult {
 
       if (!toHarvestAmount) throw Error(`getDepositorETHGain failed`);
 
-      rewardTokenBalance.add(BigInt.fromString(toHarvestAmount));
+      logInfo(`ETH toHarvest: ${toHarvestAmount}`);
+
+      rewardTokenBalance = rewardTokenBalance.add(BigInt.fromString(toHarvestAmount));
     } else {
       let response = Ethereum_Module.callContractView({
         address: rewardToken,
@@ -92,8 +96,10 @@ export function checker(args: Args_checker): CheckerResult {
       }).unwrap();
 
       if (!response) throw Error(`failed to obtain ${rewardToken} balance`);
-      rewardTokenBalance = BigInt.fromString(response);
 
+      logInfo(`current LQTY balance: ${response}`);
+      rewardTokenBalance = BigInt.fromString(response);
+      
       let toHarvestAmount = Ethereum_Module.callContractView({
         address: stabilityPool,
         args: [strategy],
@@ -102,14 +108,16 @@ export function checker(args: Args_checker): CheckerResult {
           "function getDepositorLQTYGain(address) external view returns(uint256)",
       }).unwrap();
 
+      logInfo(`LQTY toHarvest: ${toHarvestAmount}`);
+
       if (!toHarvestAmount) throw Error(`getDepositorLQTYGain failed`);
 
-      rewardTokenBalance.add(BigInt.fromString(toHarvestAmount));
+      rewardTokenBalance = rewardTokenBalance.add(BigInt.fromString(toHarvestAmount));
     }
 
     if (rewardTokenBalance.gt(0)) {
       let quoteApi = `${zeroExApiBaseUrl}/swap/v1/quote?buyToken=${strategyToken}&sellToken=${sellToken}&sellAmount=${rewardTokenBalance.toString()}`;
-      //logInfo(quoteApi);
+      logInfo(quoteApi);
       let quoteApiRes = Http_Module.get({
         request: null,
         url: quoteApi,
