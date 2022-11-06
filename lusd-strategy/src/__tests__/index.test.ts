@@ -21,6 +21,8 @@ describe("lusd strategy resolver test", () => {
       gasPrice: ethers.utils.parseUnits("100", "gwei").toString(),
       timeStamp: "1666929002"
     };
+
+    // latest hash QmbkPuZ9ikTQu4xg9YKYpgvFdvmanLVQ1tTuozexAw64uR
     const userArgs = {
       execAddress: "0x762d06bB0E45f5ACaEEA716336142a39376E596E",
       zeroExApiBaseUrl: "https://api.0x.org",
