@@ -31,7 +31,7 @@ type UserArgs {
   zeroExApiBaseUrl: String!
   intervalInSeconds: BigInt!
   strategy: String!
-  mim: String!
+  swapToToken: String!
   rewardSwappingSlippageInBips: BigInt!
   maxBentoBoxAmountIncreaseInBips: BigInt!
   maxBentoBoxChangeAmountInBips: BigInt!
