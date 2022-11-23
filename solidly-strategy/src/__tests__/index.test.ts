@@ -24,7 +24,7 @@ describe("lusd strategy resolver test", () => {
 
     // latest hash QmbkPuZ9ikTQu4xg9YKYpgvFdvmanLVQ1tTuozexAw64uR
     const userArgs = {
-      execAddress: "0xd69e75c1c2a0f2838a6bba8bdff9d08c8f137cd9",
+      execAddress: "0x7E05363E225c1c8096b1cd233B59457104B84908",
       intervalInSeconds: "86400",
       strategy: "0xa3372cd2178c52fdcb1f6e4c4e93014b4db3b20d",
       strategyLens: "0x8BEE5Db2315Df7868295c531B36BaA53439cf528",

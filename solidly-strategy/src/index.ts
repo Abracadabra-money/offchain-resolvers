@@ -32,9 +32,11 @@ export function checker(args: Args_checker): CheckerResult {
   const maxBentoBoxChangeAmountInBips = userArgs.maxBentoBoxChangeAmountInBips;
   const BIPS = 10_000;
 
-  let actions = new Array<string>(2);
-  for (let i = 0; i < actions.length; i++) {
-    actions[i] = "";
+  let callee = new Array<string>(2);
+  let data = new Array<string>(2);
+  for (let i = 0; i < data.length; i++) {
+    data[i] = "";
+    callee[i] = "";
   }
 
   let lastExecuted = BigInt.fromString(
@@ -80,32 +82,79 @@ export function checker(args: Args_checker): CheckerResult {
     connection: args.connection,
     method:
       "function quoteSolidlyWrapperHarvestAmountOut(address,address,uint256) external view returns(uint256)",
-  }).unwrap();
+  }).unwrapOr("0");
 
-  if (!request) throw Error("volatileFee call failed");
+  if (!request) throw Error("quoteSolidlyWrapperHarvestAmountOut call failed");
 
   let minLpOutFromWrapperRewards = BigInt.fromString(request);
 
-  minLpOutFromWrapperRewards = minLpOutFromWrapperRewards.sub(
-    minLpOutFromWrapperRewards.mul(wrapperRewardQuoteSlippageBips).div(10_000)
-  );
+  if (minLpOutFromWrapperRewards.gt(0)) {
+    minLpOutFromWrapperRewards = minLpOutFromWrapperRewards.sub(
+      minLpOutFromWrapperRewards.mul(wrapperRewardQuoteSlippageBips).div(10_000)
+    );
 
-  logInfo(`minLpOutFromWrapperRewards: ${minLpOutFromWrapperRewards.toString()}`);
-  /*
-  //actions[0] = "";
-  actions = actions.filter((f) => f != "");
-  let execData = Ethereum_Module.encodeFunction({
-    method: "function run(address,uint256,uint256,bytes[]) external",
-    args: [
-      strategy,
-      maxBentoBoxAmountIncreaseInBips.toString(),
-      maxBentoBoxChangeAmountInBips.toString(),
-      swapData.length > 0 ? '["' + swapData.join('", "') + '"]' : "[]",
-    ],
-  }).unwrap();
-*/
-  let execData = "";
-  return { canExec: false, execData };
+    callee[0] = wrapper;
+    data[0] = Ethereum_Module.encodeFunction({
+      method: "function harvest(uint256) external returns (uint256)",
+      args: [minLpOutFromWrapperRewards.toString()],
+    }).unwrap();
+
+    logInfo(
+      `minLpOutFromWrapperRewards: ${minLpOutFromWrapperRewards.toString()}`
+    );
+  }
+
+  request = Ethereum_Module.callContractView({
+    address: strategyLens,
+    args: [strategy, pair, router, fee.toString()],
+    connection: args.connection,
+    method:
+      "function quoteSolidlyGaugeVolatileStrategySwapToLPAmount(address,address,address,uint256) external view returns(uint256)",
+  }).unwrapOr("0");
+
+  if (!request)
+    throw Error("quoteSolidlyGaugeVolatileStrategySwapToLPAmount call failed");
+
+  let minLpOutFromStrategyRewards = BigInt.fromString(request);
+
+  if (minLpOutFromStrategyRewards.gt(0)) {
+    minLpOutFromStrategyRewards = minLpOutFromStrategyRewards.sub(
+      minLpOutFromStrategyRewards
+        .mul(strategyRewardQuoteSlippageBips)
+        .div(10_000)
+    );
+
+    callee[1] = strategy;
+    data[1] = Ethereum_Module.encodeFunction({
+      method: "function swapToLP(uint256,uint256) external returns (uint256)",
+      args: [minLpOutFromWrapperRewards.toString(), fee.toString()],
+    }).unwrap();
+
+    logInfo(
+      `minLpOutFromStrategyRewards: ${minLpOutFromStrategyRewards.toString()}`
+    );
+  }
+
+  data = data.filter((f) => f != "");
+  callee = callee.filter((f) => f != "");
+
+  if (data.length > 0) {
+    let execData = Ethereum_Module.encodeFunction({
+      method: "function run(address,uint256,uint256,address[],bytes[],bool) external",
+      args: [
+        strategy,
+        maxBentoBoxAmountIncreaseInBips.toString(),
+        maxBentoBoxChangeAmountInBips.toString(),
+        callee.length > 0 ? '["' + callee.join('", "') + '"]' : "[]",
+        data.length > 0 ? '["' + data.join('", "') + '"]' : "[]",
+        true.toString(),
+      ],
+    }).unwrap();
+
+    return { canExec: true, execData };
+  }
+
+  return { canExec: false, execData: "" };
 }
 
 function logInfo(msg: string): void {
