@@ -1,0 +1,38 @@
+#import * into Ethereum from "wrap://ens/ethereum.polywrap.eth"
+#import * into Graph from "wrap://ens/graph-node.polywrap.eth"
+#import * into Logger from "wrap://ens/js-logger.polywrap.eth"
+#import * into Http from "wrap://ens/http.polywrap.eth"
+
+type Module {
+  checker(
+    connection: Ethereum_Connection
+    userArgsBuffer: Bytes!
+    gelatoArgsBuffer: Bytes!
+  ): CheckerResult!
+}
+
+type CheckerResult {
+  canExec: Boolean!
+  execData: String!
+}
+
+type GelatoArgs {
+  gasPrice: BigInt!
+  timeStamp: BigInt!
+}
+
+type UserArgs {
+  execAddress: String!
+  intervalInSeconds: BigInt!
+  strategyLens: String!
+  strategy: String!
+  wrapper: String!
+  pair: String!
+  router: String!
+  factory: String!
+  rewardToken: String!
+  wrapperRewardQuoteSlippageBips: BigInt!
+  strategyRewardQuoteSlippageBips: BigInt!
+  maxBentoBoxAmountIncreaseInBips: BigInt!
+  maxBentoBoxChangeAmountInBips: BigInt!
+}
