@@ -7,6 +7,8 @@ import client from "./utils/client";
 
 jest.setTimeout(600000);
 
+const execAddress = "0xf9cE23237B25E81963b500781FA15d6D38A0DE62";
+
 describe("GLP strategy resolver test", () => {
   let wrapperUri: string;
   let userArgsBuffer: Uint8Array;
@@ -24,9 +26,10 @@ describe("GLP strategy resolver test", () => {
 
     // latest hash ""
     const userArgs = {
-      execAddress: "0x7E05363E225c1c8096b1cd233B59457104B84908",
-      zeroExApiBaseUrl: "https://api.0x.org",
-      intervalInSeconds: "86400",
+      execAddress,
+      zeroExApiBaseUrl: "https://arbitrum.api.0x.org",
+      //intervalInSeconds: "86400",
+      intervalInSeconds: "0",
       rewardSwappingSlippageInBips: "100",
     };
 
@@ -49,7 +52,11 @@ describe("GLP strategy resolver test", () => {
 
     expect(error).toBeFalsy();
 
-    console.log("canExec", data.canExec);
-    console.log("execData", data.execData);
+    if (data.canExec) {
+      console.log(
+        `https://dashboard.tenderly.co/abracadabra/magic-internet-money/simulator/new?contractFunction=0x977b91d7&value=0&contractAddress=${execAddress}&rawFunctionInput=${data.execData}&network=42161&from=0xfB3485c2e209A5cfBDC1447674256578f1A80eE3&block=&blockIndex=0&headerBlockNumber=&headerTimestamp=`
+      );
+      console.log(data.execData);
+    }
   });
 });

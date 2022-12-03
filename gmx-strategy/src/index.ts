@@ -88,8 +88,8 @@ export function checker(args: Args_checker): CheckerResult {
     );
 
     let execData = Ethereum_Module.encodeFunction({
-      method: "function run(uint256,address,bytes) external",
-      args: [minAmountOut.toString(), outputToken, data],
+      method: "function run(uint256,bytes) external",
+      args: [minAmountOut.toString(), data],
     }).unwrap();
 
     return { canExec: true, execData };

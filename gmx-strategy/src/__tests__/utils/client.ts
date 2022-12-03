@@ -2,8 +2,8 @@ import "dotenv/config";
 import { PolywrapClient } from "@polywrap/client-js";
 import { ethereumPlugin } from "@polywrap/ethereum-plugin-js";
 
-const chain = "10";
-const provider = "https://mainnet.optimism.io";
+const chain = "42161";
+const provider = "https://1rpc.io/arb";
 
 const polywrapClient = new PolywrapClient({
   plugins: [
