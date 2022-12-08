@@ -7,6 +7,7 @@ import client from "./utils/client";
 
 jest.setTimeout(600000);
 
+const execAddress = "0x7E05363E225c1c8096b1cd233B59457104B84908";
 describe("lusd strategy resolver test", () => {
   let wrapperUri: string;
   let userArgsBuffer: Uint8Array;
@@ -19,12 +20,12 @@ describe("lusd strategy resolver test", () => {
 
     const gelatoArgs = {
       gasPrice: ethers.utils.parseUnits("100", "gwei").toString(),
-      timeStamp: "1666929002"
+      timeStamp: "1666929002",
     };
 
     // latest hash QmbkPuZ9ikTQu4xg9YKYpgvFdvmanLVQ1tTuozexAw64uR
     const userArgs = {
-      execAddress: "0x7E05363E225c1c8096b1cd233B59457104B84908",
+      execAddress,
       intervalInSeconds: "86400",
       strategy: "0xa3372cd2178c52fdcb1f6e4c4e93014b4db3b20d",
       strategyLens: "0x8BEE5Db2315Df7868295c531B36BaA53439cf528",
@@ -36,7 +37,7 @@ describe("lusd strategy resolver test", () => {
       wrapperRewardQuoteSlippageBips: "100",
       strategyRewardQuoteSlippageBips: "100",
       maxBentoBoxAmountIncreaseInBips: "1",
-      maxBentoBoxChangeAmountInBips: "1000"
+      maxBentoBoxChangeAmountInBips: "1000",
     };
 
     userArgsBuffer = encode(userArgs);
@@ -58,8 +59,11 @@ describe("lusd strategy resolver test", () => {
 
     expect(error).toBeFalsy();
 
-    console.log("canExec", data.canExec);
-    console.log("execData", data.execData);
+    if (data.canExec) {
+      console.log(
+        `https://dashboard.tenderly.co/abracadabra/magic-internet-money/simulator/new?contractFunction=0x8224cec9&value=0&contractAddress=${execAddress}&rawFunctionInput=${data.execData}&network=10&from=0xfB3485c2e209A5cfBDC1447674256578f1A80eE3&block=&blockIndex=0&headerBlockNumber=&headerTimestamp=`
+      );
+      console.log(data.execData);
+    }
   });
-
 });
