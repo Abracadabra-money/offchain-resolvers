@@ -24,7 +24,7 @@ describe("GLP strategy resolver test", () => {
       timeStamp: "1666929002",
     };
 
-    // latest hash ""
+    // latest hash "QmV66eiickDQ43ujiRnkSr4NK7XqyntYXpYuQgqcC9SrVq"
     const userArgs = {
       execAddress,
       zeroExApiBaseUrl: "https://arbitrum.api.0x.org",
