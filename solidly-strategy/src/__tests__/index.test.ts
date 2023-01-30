@@ -8,15 +8,15 @@ import client from "./utils/client";
 jest.setTimeout(600000);
 
 // Config Velodrome vOP/USDC
-// latest hash: TODO
+// latest hash: QmXmTJqnMqm7LCgm2nHphXan1EoBRrnxjdMAezMrnCktyz
 const gelatProxy = "0xF3Ba6C8cf4C5Ac4D1d004020DAC61D20e40ECB7C";
 const contractFunction = "0x8224cec9";
 const chainid = 10;
 const userArgs = {
   execAddress: "0x7E05363E225c1c8096b1cd233B59457104B84908",
   intervalInSeconds: "43200", // twice a day
-  strategy: "0xa3372cd2178c52fdcb1f6e4c4e93014b4db3b20d",
   strategyLens: "0x8BEE5Db2315Df7868295c531B36BaA53439cf528",
+  strategy: "0xa3372cd2178c52fdcb1f6e4c4e93014b4db3b20d",
   wrapper: "0x6eb1709e0b562097bf1cc48bc6a378446c297c04",
   pair: "0x47029bc8f5cbe3b464004e87ef9c9419a48018cd",
   router: "0xa132DAB612dB5cB9fC9Ac426A0Cc215A3423F9c9",
